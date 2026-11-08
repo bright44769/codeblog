@@ -1,0 +1,30 @@
+{% extends 'home/base.html' %}
+{% block title %}Continue with Google{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card social-card">
+    <div class="auth-brand">
+      <span class="brand-mark">C</span>
+      <span>codeblog</span>
+    </div>
+
+    <div class="auth-header social-header">
+      <p class="eyebrow">Continue</p>
+      <h1>Sign in via Google</h1>
+    </div>
+
+    <p class="social-subtitle">
+      You are about to sign in using your Google account.
+    </p>
+
+    <form method="post" class="auth-form social-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="google-btn google-btn-primary">
+        <span class="google-glyph" aria-hidden="true">G</span>
+        <span>Continue</span>
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

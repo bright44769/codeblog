@@ -1,0 +1,45 @@
+{% extends 'home/base.html' %}
+{% block title %}Log in{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="brand-mark">C</span>
+      <span>codeblog</span>
+    </div>
+
+    <div class="auth-header">
+      <p class="eyebrow">Welcome back</p>
+      <h1>Sign in</h1>
+    </div>
+
+    <a href="{% url 'google_login' %}" class="google-btn" aria-label="Continue with Google">
+      <span class="google-glyph" aria-hidden="true">G</span>
+      <span>Continue with Google</span>
+    </a>
+
+    <div class="auth-divider"><span>or continue with email</span></div>
+
+    <form method="post" class="auth-form" autocomplete="off">
+      {% csrf_token %}
+      {% if form.errors %}
+        <div class="auth-alert">Your username or password was incorrect.</div>
+      {% endif %}
+
+      <label class="form-label" for="username">Username</label>
+      <input class="form-control" id="username" name="username" autocomplete="off" value="" readonly onfocus="this.removeAttribute('readonly')" required autofocus>
+
+      <label class="form-label" for="password">Password</label>
+      <input class="form-control" id="password" type="password" name="password" autocomplete="new-password" value="" readonly onfocus="this.removeAttribute('readonly')" required>
+
+      <a class="forgot-password" href="{% url 'password_reset' %}">Forgot password?</a>
+
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <button class="btn btn-write w-100">Log in</button>
+    </form>
+
+    <p class="auth-footer">New here? <a href="{% url 'register' %}">Create an account</a></p>
+  </div>
+</div>
+{% endblock %}

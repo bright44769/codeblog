@@ -1,0 +1,52 @@
+{% extends 'home/base.html' %}
+{% block title %}Finish signing up{% endblock %}
+{% block body %}
+<div class="auth-page">
+  <div class="auth-card social-card">
+    <div class="auth-brand">
+      <span class="brand-mark">C</span>
+      <span>codeblog</span>
+    </div>
+
+    <div class="auth-header social-header">
+      <p class="eyebrow">One last step</p>
+      <h1>Finish signing up</h1>
+    </div>
+
+    <p class="social-subtitle">
+      Your Google account is connected. Choose a username to finish creating your CodeBlog account.
+    </p>
+
+    <form method="post" class="auth-form social-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="auth-alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      {% for field in form %}
+        {% if field.is_hidden %}
+          {{ field }}
+        {% else %}
+          <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}
+            <div class="auth-alert">{{ error }}</div>
+          {% endfor %}
+          {% if field.help_text %}
+            <div class="auth-help">{{ field.help_text|safe }}</div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      <button type="submit" class="btn btn-write w-100">Create my account</button>
+    </form>
+
+    <p class="auth-footer">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+  </div>
+</div>
+<script>
+  document.querySelectorAll('.social-form input:not([type="hidden"])').forEach(function (input) {
+    input.classList.add('form-control');
+  });
+</script>
+{% endblock %}
