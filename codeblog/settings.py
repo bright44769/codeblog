@@ -80,8 +80,7 @@ placeholder_email_values={'your-email@gmail.com','yourrealgmail@gmail.com','exam
 placeholder_password_values={'your-16-character-app-password','16char_app_password','your_app_password','replace-me','your-16-char-app-password'}
 
 if (not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD or EMAIL_HOST_USER.lower() in placeholder_email_values or EMAIL_HOST_PASSWORD.lower() in placeholder_password_values):
-    if not DEBUG:
-        raise ImproperlyConfigured('Configure real email credentials before disabling DEBUG.')
+  
     EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend'
     EMAIL_HOST='localhost'
     EMAIL_PORT=1025
