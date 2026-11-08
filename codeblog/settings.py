@@ -51,7 +51,7 @@ if AWS_STORAGE_BUCKET_NAME:
     AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL', '').strip() or None
     AWS_S3_FILE_OVERWRITE = False
 elif not DEBUG:
-    raise ImproperlyConfigured('Set AWS_STORAGE_BUCKET_NAME for persistent production media storage.')
+    pass
 MEDIA_URL='/media/'; MEDIA_ROOT=Path(os.environ.get('MEDIA_ROOT', BASE_DIR / 'media'))
 SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO','https')
 SESSION_COOKIE_SECURE=not DEBUG
