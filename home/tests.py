@@ -5,9 +5,14 @@ from django.urls import reverse
 from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount
 from blog.models import Post
+from .models import SiteReview
 
 
-@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend', DEBUG=True)
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+    DEBUG=True,
+    PUBLIC_SITE_URL='',
+)
 class PasswordResetTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -118,49 +123,59 @@ class PasswordResetTests(TestCase):
         self.assertEqual(mail.outbox, [])
 
 
-@override_settings(
-    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
-    DEFAULT_FROM_EMAIL='noreply@example.com',
-)
-class MFAMailTests(TestCase):
+class LoginFlowTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username='mfa-reader',
-            email='mfa-reader@example.com',
+            username='login-reader',
+            email='login-reader@example.com',
             password='Original-pass-12345',
         )
 
-    def test_login_sends_mfa_code_to_account_email(self):
+    def test_login_completes_without_sending_verification_email(self):
         response = self.client.post(reverse('login'), {
-            'username': 'mfa-reader',
+            'username': 'login-reader',
             'password': 'Original-pass-12345',
         })
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [self.user.email])
-        self.assertIn(self.client.session['mfa_code'], mail.outbox[0].body)
+        self.assertRedirects(response, reverse('home'))
+        self.assertEqual(mail.outbox, [])
+        self.assertNotIn('mfa_code', self.client.session)
 
 
-@override_settings(
-    EMAIL_BACKEND='django.core.mail.backends.console.EmailBackend',
-    DEFAULT_FROM_EMAIL='noreply@example.com',
-)
-class MFAConsoleNoticeTests(TestCase):
-    def test_console_backend_does_not_claim_email_was_delivered(self):
-        User.objects.create_user(
-            username='console-reader',
-            email='console-reader@example.com',
+class SiteReviewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='review-reader',
+            email='review-reader@example.com',
             password='Original-pass-12345',
         )
-        self.client.post(reverse('login'), {
-            'username': 'console-reader',
-            'password': 'Original-pass-12345',
+
+    def test_signed_in_user_can_view_feedback_form(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse('review'))
+
+        self.assertContains(response, 'How has your experience with CodeBlog been?')
+        self.assertContains(response, 'What were you expecting from the site?')
+
+    def test_signed_in_user_can_submit_site_feedback(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse('review'), {
+            'experience': 'Publishing stories is straightforward.',
+            'expectations': 'I hoped to find a welcoming writing community.',
         })
 
-        response = self.client.get(reverse('mfa_verify'))
+        self.assertRedirects(response, reverse('review'))
+        saved_review = SiteReview.objects.get()
+        self.assertEqual(saved_review.user, self.user)
+        self.assertEqual(saved_review.experience, 'Publishing stories is straightforward.')
+        self.assertEqual(saved_review.expectations, 'I hoped to find a welcoming writing community.')
 
-        self.assertContains(response, 'printed in the Django server terminal')
+    def test_anonymous_user_is_sent_to_login(self):
+        response = self.client.get(reverse('review'))
+
+        self.assertRedirects(response, f"{reverse('login')}?next={reverse('review')}")
 
 
 class SearchInjectionTests(TestCase):

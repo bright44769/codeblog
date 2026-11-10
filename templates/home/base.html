@@ -21,6 +21,7 @@
           <li><a class="nav-link" href="{% url 'blog:home' %}">Explore</a></li>
           <li><a class="nav-link" href="{% url 'about' %}">About</a></li>
           <li><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+          {% if user.is_authenticated %}<li><a class="nav-link" href="{% url 'review' %}">Share feedback</a></li>{% endif %}
         </ul>
         <button class="btn theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">Dark mode</button>
         <form class="d-flex search-nav" action="{% url 'search' %}">

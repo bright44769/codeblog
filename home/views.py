@@ -1,16 +1,12 @@
-from datetime import datetime
-
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 
 from blog.models import Post
-from .forms import RegistrationForm
-from .mfa import send_mfa_code as issue_mfa_code
+from .forms import RegistrationForm, SiteReviewForm
 from .models import Contact, Profile
 
 def home(request):
@@ -25,6 +21,18 @@ def contact(request):
             return redirect('contact')
         messages.error(request,'Please complete the required fields.')
     return render(request,'home/contact.html')
+
+@login_required
+def review(request):
+    form = SiteReviewForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        site_review = form.save(commit=False)
+        site_review.user = request.user
+        site_review.save()
+        messages.success(request, 'Thanks for sharing your feedback.')
+        return redirect('review')
+    return render(request, 'home/review.html', {'form': form})
+
 def search(request):
     query=request.GET.get('query','').strip()
     posts=Post.objects.filter(is_published=True).filter(Q(title__icontains=query)|Q(content__icontains=query)|Q(tags__icontains=query)|Q(category__icontains=query)) if query else Post.objects.none()
@@ -34,52 +42,8 @@ def register(request):
     if request.method=='POST' and form.is_valid():
         user=form.save()
         login(request,user,backend='django.contrib.auth.backends.ModelBackend')
-        return redirect('mfa_verify')
-    return render(request,'registration/register.html',{'form':form})
-
-
-def mfa_verify(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if request.session.get('mfa_verified'):
         return redirect('home')
-
-    if request.method == 'POST':
-        submitted_code = request.POST.get('code', '').strip()
-        expected_code = request.session.get('mfa_code')
-        expires_at = request.session.get('mfa_code_expires_at')
-
-        if expected_code and expires_at:
-            try:
-                expires_at_dt = datetime.fromisoformat(expires_at)
-            except ValueError:
-                expires_at_dt = None
-
-            if expires_at_dt and timezone.now() < expires_at_dt and submitted_code == expected_code:
-                request.session['mfa_verified'] = True
-                request.session['mfa_pending'] = False
-                request.session.pop('mfa_code', None)
-                request.session.pop('mfa_code_expires_at', None)
-                messages.success(request, 'Email verification passed. You are now signed in.')
-                return redirect('home')
-
-        messages.error(request, 'Invalid or expired verification code. Please try again.')
-
-    return render(request, 'registration/mfa_verify.html', {'user_email': request.user.email})
-
-
-def resend_mfa_code(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-
-    if not request.user.email:
-        messages.error(request, 'Add an email address to your account before enabling MFA.')
-        return redirect('profile')
-
-    issue_mfa_code(request, request.user, resend=True)
-    return redirect('mfa_verify')
-
+    return render(request,'registration/register.html',{'form':form})
 
 @login_required
 def profile(request, username=None):

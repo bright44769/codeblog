@@ -27,9 +27,9 @@ OAuth is wired through django-allauth and the Google provider. To activate it:
 
 Google will not authenticate users until real credentials and the matching provider configuration are supplied. Never commit OAuth secrets.
 
-## 3. Email MFA
+## 3. Account email
 
-After a successful sign-in, the app sends a 6-digit verification code to the user's email address before access is granted. The login page also provides a password-reset flow that emails a time-limited reset link to the address on the account. Google-only accounts can receive a reset link when their matching email address is verified by allauth; this lets them set a local password as an alternative to Google sign-in. Both features use Django's configured email backend. When SMTP credentials are missing or are recognized placeholders, the app falls back to the console backend for local testing; messages appear in the runserver terminal. For real delivery, set `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `DEFAULT_FROM_EMAIL` in the environment. Set `PUBLIC_SITE_URL` to the public base URL (for example, `https://codeblog.example`) so reset links work for other users. Without it, DEBUG mode builds links from the host used to submit the reset form; a localhost link only works on the machine running Django.
+The login page provides a password-reset flow that emails a time-limited reset link to the address on the account. Google-only accounts can receive a reset link when their matching email address is verified by allauth; this lets them set a local password as an alternative to Google sign-in. Password reset uses Django's configured email backend. When SMTP credentials are missing or are recognized placeholders, the app falls back to the console backend for local testing; messages appear in the runserver terminal. To send real email, set `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, and `DEFAULT_FROM_EMAIL` in the environment. Set `PUBLIC_SITE_URL` to the public base URL (for example, `https://codeblog.example`) so reset links work for other users. Without it, DEBUG mode builds links from the host used to submit the reset form; a localhost link only works on the machine running Django.
 
 ## 4. Deploy to Render
 
@@ -54,12 +54,12 @@ The app keeps SQLite for local development and automatically uses PostgreSQL whe
    - `AWS_STORAGE_BUCKET_NAME`: the name of an S3-compatible bucket for uploaded images and videos.
    - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_S3_REGION_NAME`: credentials and region for that bucket.
    - `AWS_S3_ENDPOINT_URL`: only if your storage provider requires a custom S3-compatible endpoint (for example, Cloudflare R2).
-   - Email settings from [Email MFA](#3-email-mfa), using real SMTP credentials.
+   - Email settings from [Account email](#3-account-email), using real SMTP credentials if password reset email is enabled.
    - Google OAuth credentials and `PUBLIC_SITE_URL` if those features are enabled.
 
-   Production startup intentionally fails if the secret key, media bucket, or real email credentials are missing. Keep the bucket private and give the app credentials only for the required bucket operations; the storage backend generates time-limited URLs for media.
+   Production startup intentionally fails if the secret key or media bucket is missing. Keep the bucket private and give the app credentials only for the required bucket operations; the storage backend generates time-limited URLs for media.
 5. Run `python manage.py migrate` once the service has the production environment variables, then verify the site and create an admin user with `python manage.py createsuperuser`.
 6. Existing files in local `media/` are not copied automatically and must be migrated separately if you need them.
-7. Update the Google OAuth redirect URI to `https://YOUR-HOSTNAME/accounts/google/login/callback/` and test sign-in, MFA email, static files, and media uploads.
+7. Update the Google OAuth redirect URI to `https://YOUR-HOSTNAME/accounts/google/login/callback/` and test Google sign-in, password reset email, static files, and media uploads.
 
 Before switching production traffic, run `python manage.py check --deploy` with the production environment variables. SQLite remains the local default; changing databases does not copy existing local data or uploaded files.

@@ -1,20 +1,33 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import Post, PostMedia, Comment, Like, Bookmark
 
+
 class BloggingFlowTests(TestCase):
     def setUp(self):
-        self.user=get_user_model().objects.create_user(username='writer',password='Test-pass-12345')
+        self.user=get_user_model().objects.create_user(
+            username='writer',
+            email='writer@example.com',
+            password='Test-pass-12345',
+        )
         self.post=Post.objects.create(author=self.user,title='A test story',content='This is a useful test story.')
+
+    def log_in(self):
+        response = self.client.post(reverse('login'), {
+            'username': 'writer',
+            'password': 'Test-pass-12345',
+        })
+        self.assertRedirects(response, reverse('home'))
+
     def test_post_slug_is_generated(self):
         self.assertEqual(self.post.slug,'a-test-story')
     def test_post_is_visible(self):
         response=self.client.get(reverse('blog:post',kwargs={'slug':self.post.slug}))
         self.assertEqual(response.status_code,200)
     def test_authenticated_user_can_comment(self):
-        self.client.login(username='writer',password='Test-pass-12345')
+        self.log_in()
         response=self.client.post(reverse('blog:post',kwargs={'slug':self.post.slug}),{'body':'Helpful post'})
         self.assertEqual(response.status_code,302)
         self.assertEqual(Comment.objects.count(),1)
@@ -26,7 +39,7 @@ class BloggingFlowTests(TestCase):
         self.assertEqual(self.post.bookmarks.count(),1)
 
     def test_story_can_include_uploaded_images_and_videos(self):
-        self.client.login(username='writer',password='Test-pass-12345')
+        self.log_in()
         response=self.client.post(reverse('blog:create'), {
             'title': 'A story with media',
             'content': 'This story includes an image and a video.',
@@ -49,7 +62,7 @@ class BloggingFlowTests(TestCase):
         self.assertContains(response, 'post_media/photo.png', html=False)
 
     def test_story_media_rejects_unsupported_file_types(self):
-        self.client.login(username='writer',password='Test-pass-12345')
+        self.log_in()
         response=self.client.post(reverse('blog:create'), {
             'title': 'Story with invalid media',
             'content': 'The upload should be rejected.',

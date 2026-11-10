@@ -17,3 +17,11 @@ class Contact(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     def __str__(self): return f'Message from {self.name}'
+
+class SiteReview(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='site_reviews')
+    experience = models.TextField()
+    expectations = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self): return f'Site feedback from {self.user or "former user"}'
