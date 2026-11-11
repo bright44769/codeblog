@@ -19,7 +19,7 @@ ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS',
 if not DEBUG and not os.environ.get('DJANGO_ALLOWED_HOSTS', '').strip():
     raise ImproperlyConfigured('Set DJANGO_ALLOWED_HOSTS to your production hostname.')
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
-INSTALLED_APPS=['django.contrib.admin','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.messages','django.contrib.staticfiles','django.contrib.sites','home.apps.HomeConfig','blog.apps.BlogConfig','allauth','allauth.account','allauth.socialaccount','allauth.socialaccount.providers.google','storages']
+INSTALLED_APPS=['cloudinary_storage','django.contrib.admin','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions','django.contrib.messages','django.contrib.staticfiles','django.contrib.sites','home.apps.HomeConfig','blog.apps.BlogConfig','allauth','allauth.account','allauth.socialaccount','allauth.socialaccount.providers.google','storages','cloudinary']
 MIDDLEWARE=['django.middleware.security.SecurityMiddleware','whitenoise.middleware.WhiteNoiseMiddleware','django.contrib.sessions.middleware.SessionMiddleware','django.middleware.common.CommonMiddleware','django.middleware.csrf.CsrfViewMiddleware','django.contrib.auth.middleware.AuthenticationMiddleware','allauth.account.middleware.AccountMiddleware','django.contrib.messages.middleware.MessageMiddleware','django.middleware.clickjacking.XFrameOptionsMiddleware']
 ROOT_URLCONF='codeblog.urls'
 TEMPLATES=[{'BACKEND':'django.template.backends.django.DjangoTemplates','DIRS':[BASE_DIR/'templates'],'APP_DIRS':True,'OPTIONS':{'context_processors':['django.template.context_processors.request','django.contrib.auth.context_processors.auth','django.contrib.messages.context_processors.messages']}}]
@@ -39,7 +39,7 @@ AUTH_PASSWORD_VALIDATORS=[{'NAME':'django.contrib.auth.password_validation.UserA
 LANGUAGE_CODE='en-us'; TIME_ZONE='Africa/Accra'; USE_I18N=True; USE_TZ=True
 STATIC_URL='/static/'; STATICFILES_DIRS=[BASE_DIR/'static']; STATIC_ROOT=BASE_DIR/'staticfiles'
 STORAGES={
-    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
     'staticfiles': {
         'BACKEND': (
             'django.contrib.staticfiles.storage.StaticFilesStorage'
@@ -93,3 +93,10 @@ if (not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD or EMAIL_HOST_USER.lower() in
     EMAIL_USE_TLS=False
     DEFAULT_FROM_EMAIL='noreply@codeblog.local'
 MESSAGE_TAGS={messages.DEBUG:'info',messages.INFO:'info',messages.SUCCESS:'success',messages.WARNING:'warning',messages.ERROR:'danger'}
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', '').strip(),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '').strip(),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '').strip(),
+}
+

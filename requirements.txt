@@ -36,3 +36,5 @@ tzdata==2026.6
 urllib3==2.8.0
 virtualenv==21.14.13
 whitenoise==6.12.0
+
+cloudinary django-cloudinary-storage
